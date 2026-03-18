@@ -17,9 +17,11 @@
 <br>
 
 ## 💻 图形界面
+
 <p align="center">
-  <img src="images/GUI.png" width="45%">
-</div>
+  <img src="images/GUI.png" width="60%" alt="ACE 图形界面">
+</p>
+
 <br>
-## 💻 图形界面
-<em>一款Abaqus 二维零厚度内聚力单元插入插件</em>
+
+## 📚 使用方法
