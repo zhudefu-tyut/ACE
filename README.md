@@ -49,7 +49,7 @@
 
 <div align="center">
 
-<img src="images/example-1.png" width="70%">
+<img src="images/example-1.png" width="100%">
 <br><em>图 1：边界插入内聚力单元示例1</em>
 
 <br><br>
