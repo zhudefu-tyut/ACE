@@ -50,21 +50,16 @@
 <div align="center">
 
 <img src="images/example-1.png" width="70%">
-<br><em>图 1：插件启动与模型选择</em>
+<br><em>图 1：边界插入内聚力单元示例1</em>
 
 <br><br>
 
 <img src="images/example-2.png" width="70%">
-<br><em>图 2：参数设置与一键插入</em>
+<br><em>图 2：边界插入内聚力单元示例2</em>
 
 <br><br>
 
 <img src="images/example-3.png" width="70%">
-<br><em>图 3：插入后网格预览</em>
-
-<br><br>
-
-<img src="images/example-4.png" width="70%">
-<br><em>图 4：计算结果 - 裂纹扩展形态</em>
+<br><em>图 3：内部网格边全插入内聚力单元示例</em>
 
 </div>
