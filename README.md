@@ -59,6 +59,11 @@
 
 <br><br>
 
+<img src="images/example-3.png" width="100%">
+<br><em>图 3：全内部网格边界插入内聚力单元示例</em>
+
+<br><br>
+
 ## 🌟 软件前瞻
 
 正在全力开发中的 **ACE内聚力单元插入器**（暂定名）———下一代 Abaqus 裂纹模拟利器：  
