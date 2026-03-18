@@ -19,4 +19,5 @@
 ## 💻 图形界面
 <p align="center">
   <img src="images/GUI.png" width="45%">
-- ...
+## 📚 使用方法
+<em>一款Abaqus 二维零厚度内聚力单元插入插件</em>
