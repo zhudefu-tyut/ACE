@@ -54,12 +54,12 @@
 
 <br><br>
 
-<img src="images/example-2.png" width="70%">
+<img src="images/example-2.png" width="100%">
 <br><em>图 2：边界插入内聚力单元示例2</em>
 
 <br><br>
 
-<img src="images/example-3.png" width="70%">
+<img src="images/example-3.png" width="100%">
 <br><em>图 3：内部网格边全插入内聚力单元示例</em>
 
 </div>
