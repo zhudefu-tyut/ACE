@@ -17,5 +17,6 @@
 <br>
 
 ## 💻 图形界面
-
+<p align="center">
+  <img src="images/GUI.png" width="45%">
 - ...
