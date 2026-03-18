@@ -59,7 +59,20 @@
 
 <br><br>
 
-<img src="images/example-3.png" width="100%">
-<br><em>图 3：内部网格边全插入内聚力单元示例</em>
+## 🌟 软件前瞻
+
+正在全力开发中的 **ACE内聚力单元插入器**（暂定名）———下一代 Abaqus 裂纹模拟利器：  
+**一句话介绍**：一款支持2D全自动零厚度内聚力单元插入软件，一键导入模型，确定网格划分密度，选定不同内聚力单元插入模式，一键即可获得Abaqus内聚力模型
+
+### 新版 GUI 预览（开发截图）
+<div align="center">
+
+<img src="images/ruanjian-GUI.png" width="100%" alt="ACE内聚力单元插入器主界面">
+<br><br>
+<em>图 1：ACE内聚力单元插入器主界面（开发中）</em>
+
+<p align="center">
+  <em>ACE Pro 预计 2026 年底 公测，欢迎关注仓库动态或本项目获取第一时间更新！</em>
+
 
 </div>
