@@ -7,7 +7,7 @@ gmsh.option.setNumber("General.Terminal", 1)
 # 添加模型并导入 STEP 文件
 model_name = "example"
 gmsh.model.add(model_name)
-gmsh.merge("2.stp")  # 替换为你的 STEP 文件路径
+gmsh.merge("XXX.stp")  # 替换为你的 STEP 文件路径
 gmsh.model.occ.synchronize()
 gmsh.model.occ.healShapes()
 gmsh.model.occ.synchronize()
