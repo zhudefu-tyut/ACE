@@ -1,47 +1,38 @@
-import pandas as pd
-import numpy as np
+# 数据后处理与总荷载计算
 
-input_file = 'S_ALL_withCoords_ZHU_EDGE.csv'
-output_file = 'S_ALL_withCoords_ZHU_EDGE_filtered_S22_neg.csv'
-df = pd.read_csv(input_file)
+读取 CSV 文件：S_ALL_withCoords_ZHU_EDGE.csv
 
-df = df[(df.iloc[:, 4] <= 23) & (df.iloc[:, 1].isin([2, 4]))].copy()
-df.to_csv(output_file, index=False, encoding='utf-8-sig')
+// 1. 数据筛选
+筛选符合以下条件的行：在矿柱内部且靠近矿柱顶部边界
 
-df = pd.read_csv(output_file)
+保存筛选结果到新文件：S_ALL_withCoords_ZHU_EDGE_filtered_S22_neg.csv
 
-df = df.sort_values('X').reset_index(drop=True)
+// 2. 数据排序
+重新读取筛选后的文件
+按 X 坐标从小到大排序
 
-x = df['X'].values
-y = df['S22'].values
+// 3. 提取数据
+x = X 坐标数组
+y = S22 应力数组
 
-mask = ~np.isnan(x) & ~np.isnan(y)
-x = x[mask]
-y = y[mask]
+去除包含 NaN 的数据
 
-n = len(y)
+// 4. 读取参数
+从 bianliang.txt 文件读取 spacing_zhu 的值
 
-with open('bianliang.txt', encoding='utf-8') as f:
-    spacing_zhu = float(f.read().replace(' ', '').split('=')[1])
-
-if n < 2:
+// 5. 计算总荷载
+如果有效数据点少于 2 个：
     total_load = 0.0
-    print("0")
-else:
-    mid_x = (x[:-1] + x[1:]) / 2
+否则：
+    计算相邻 X 坐标的中点
+    在首尾分别添加 -spacing_zhu/2 和 +spacing_zhu/2
+    对所有位置点进行排序
+    计算每段区间的长度 lengths
+    计算每段荷载 = S22 × 长度
+    total_load = 所有区段荷载之和
 
-    pos = np.append(np.append(-spacing_zhu / 2, mid_x), spacing_zhu / 2)
-    pos = np.sort(pos)
+打印 total_load 值
 
-    lengths = np.diff(pos)
-
-    load_forces = y * lengths
-
-    total_load = np.sum(load_forces)
-
-print("sum", total_load)
-
-formatted_total_load = "{:.2f}".format(total_load)
-
-with open('total_load.txt', 'w', encoding='utf-8') as f:
-    f.write(formatted_total_load)
+// 6. 输出结果
+将 total_load 保留两位小数
+写入文件：total_load.txt
