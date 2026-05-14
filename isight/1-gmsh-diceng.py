@@ -1,80 +1,30 @@
-import gmsh
+初始化 Gmsh 环境
+创建名为 "diceng" 的新几何模型
 
-gmsh.initialize()
-gmsh.model.add("diceng")
+// 1. 创建基础地层矩形
+添加矩形：左下角(0,0,0)，宽度，高度
 
-gmsh.model.occ.addRectangle(0,0,0,160,40,0)
-gmsh.model.occ.addPoint(0,17.4,0)
-gmsh.model.occ.addPoint(160,17.4,0)
-gmsh.model.occ.addPoint(0,23,0)
-gmsh.model.occ.addPoint(160,23,0)
-gmsh.model.occ.addPoint(0,28,0)
-gmsh.model.occ.addPoint(160,28,0)
+// 2. 添加关键水平参考点
+添加地层分界面左右端点
 
-with open('bianliang.txt', encoding='utf-8') as f:
-    spacing_zhu = float(f.read().replace(' ', '').split('=')[1])
-long_caikongqu = 5
-gmsh.model.occ.addPoint(80-2.5*spacing_zhu-3*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80-2.5*spacing_zhu-3*long_caikongqu,23,0)
+// 3. 读取参数
+从文件 'bianliang.txt' 读取设计变量“矿柱宽度”的值
 
-gmsh.model.occ.addPoint(80-2.5*spacing_zhu-2*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80-2.5*spacing_zhu-2*long_caikongqu,23,0)
+// 4. 动态添加分割点（采空区相关）
+根据矿柱宽度和采空区宽度，在各地层和处动态生成多组 x 坐标点
 
-gmsh.model.occ.addPoint(80-1.5*spacing_zhu-2*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80-1.5*spacing_zhu-2*long_caikongqu,23,0)
+// 5. 创建垂向分割线
+创建多条连接上述分割点的垂向线段
 
-gmsh.model.occ.addPoint(80-1.5*spacing_zhu-long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80-1.5*spacing_zhu-long_caikongqu,23,0)
+// 6. 准备分割工具列表
+初始化空列表 diceng
+for i = x to y:
+    将曲线(i) 加入 diceng 列表
 
-gmsh.model.occ.addPoint(80-0.5*spacing_zhu-long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80-0.5*spacing_zhu-long_caikongqu,23,0)
+// 7. 执行布尔分割操作
+对矩形执行 Fragment 操作，使用 diceng 中的所有垂向线作为分割工具
 
-gmsh.model.occ.addPoint(80-0.5*spacing_zhu,17.4,0)
-gmsh.model.occ.addPoint(80-0.5*spacing_zhu,23,0)
-
-gmsh.model.occ.addPoint(80+0.5*spacing_zhu,17.4,0)
-gmsh.model.occ.addPoint(80+0.5*spacing_zhu,23,0)
-
-gmsh.model.occ.addPoint(80+0.5*spacing_zhu+long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80+0.5*spacing_zhu+long_caikongqu,23,0)
-
-gmsh.model.occ.addPoint(80+1.5*spacing_zhu+long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80+1.5*spacing_zhu+long_caikongqu,23,0)
-
-gmsh.model.occ.addPoint(80+1.5*spacing_zhu+2*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80+1.5*spacing_zhu+2*long_caikongqu,23,0)
-
-gmsh.model.occ.addPoint(80+2.5*spacing_zhu+2*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80+2.5*spacing_zhu+2*long_caikongqu,23,0)
-
-gmsh.model.occ.addPoint(80+2.5*spacing_zhu+3*long_caikongqu,17.4,0)
-gmsh.model.occ.addPoint(80+2.5*spacing_zhu+3*long_caikongqu,23,0)
-
-gmsh.model.occ.addLine(5,6)
-gmsh.model.occ.addLine(7,8)
-gmsh.model.occ.addLine(9,10)
-
-gmsh.model.occ.addLine(11,12)
-gmsh.model.occ.addLine(13,14)
-gmsh.model.occ.addLine(15,16)
-gmsh.model.occ.addLine(17,18)
-gmsh.model.occ.addLine(19,20)
-gmsh.model.occ.addLine(21,22)
-gmsh.model.occ.addLine(23,24)
-gmsh.model.occ.addLine(25,26)
-gmsh.model.occ.addLine(27,28)
-gmsh.model.occ.addLine(29,30)
-gmsh.model.occ.addLine(31,32)
-gmsh.model.occ.addLine(33,34)
-
-diceng = list()
-for i in range(5,20):
-    a = [(1,i)]
-    diceng.extend(a)
-
-gmsh.model.occ.fragment([(2,0)],diceng,-1,-1,1)
-
-gmsh.model.occ.synchronize()
-
-gmsh.write("model-diceng.stp")
-gmsh.fltk.run()
+// 8. 同步并输出
+同步几何模型
+导出模型为 "model-diceng.stp"
+启动 Gmsh 图形界面显示模型
