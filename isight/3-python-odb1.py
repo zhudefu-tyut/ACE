@@ -1,78 +1,44 @@
-from odbAccess import openOdb
-from abaqusConstants import *
+# Abaqus ODB 后处理
 
-import math
+打开 ODB 文件：diyingli.odb（只读模式）
 
-odb = openOdb(path=r'D:/Work_Directory_new/diyingli.odb', readOnly=True)
+获取最后一个分析步（step）和其最后一帧（frame）
+获取倒数第二个分析步（step2）和其最后一帧（frame2）
 
-step = odb.steps.values()[-1]
-frame = step.frames[-1]
+获取部件实例 'MODEL-1'
+获取集合 柱边单元集合
 
-step2 = odb.steps.values()[-2]
-frame2 = step2.frames[-1]
+// 1. 计算原岩应力（地应力平衡阶段）
+stressField2 = 从 frame2 提取应力场 S
+提取 ZHU_EDGE 集合在单元质心位置的应力子集
+遍历所有单元，提取 S22 分量
+计算平均 S22 值
+yuanyanyingli = - (平均 S22)
+将 yuanyanyingli 写入文件 yuanyanyingli.txt
 
-instance = odb.rootAssembly.instances['MODEL-1']
-instElSet = instance.elementSets['ZHU_EDGE']
+// 2. 提取开挖后积分点应力及坐标
+stressField = 从最终 frame 提取应力场 S
+提取 ZHU_EDGE 集合在积分点位置的应力子集
 
-stressField2 = frame2.fieldOutputs['S']
-stressSubset2 = stressField2.getSubset(region=instElSet,
-                                       position=CENTROID)
-s22_list = []
-for v in stressSubset2.values:
-    s22 = v.data[1]
-    s22_list.append(s22)
+// 定义 CPE4 单元积分点坐标计算函数
+定义函数 ipCoord_cpe4（elem, frame, instance, uCache, intPt）：
+    获取单元节点连接性
+    读取各节点原始坐标 + 位移，得到变形后坐标
+    使用高斯积分点形状函数（ξ, η）计算当前积分点全局坐标 (ipX, ipY)
+    返回积分点坐标
 
-yuanyanyingli = (-1) * sum(s22_list) / len(s22_list)
-with open('yuanyanyingli.txt', 'w', encoding='utf-8') as f:
-    f.write(str(yuanyanyingli))
-stressField = frame.fieldOutputs['S']
-stressSubset = stressField.getSubset(region=instElSet,
-                                     position=INTEGRATION_POINT)
+// 缓存位移场
+uField = 从最终 frame 提取位移场 U
+建立节点标签 → 位移 的缓存字典 uCache
 
-def ipCoord_cpe4(elem, frame, instance, uCache, intPt):
-    conn = elem.connectivity
-    X = [0.0] * 4
-    Y = [0.0] * 4
-    for i, lab in enumerate(conn):
-        n = instance.getNodeFromLabel(lab)
-        ux, uy = uCache[lab]
-        X[i] = n.coordinates[0] + ux
-        Y[i] = n.coordinates[1] + uy
+// 3. 输出结果到 CSV 文件
+创建文件 S_ALL_withCoords_ZHU_EDGE.csv
+写入表头：Element,IntPt,S22,X,Y
 
-    gauss_pts = [
-        (-1 / math.sqrt(3), -1 / math.sqrt(3)),
-        (1 / math.sqrt(3), -1 / math.sqrt(3)),
-        (1 / math.sqrt(3), 1 / math.sqrt(3)),
-        (-1 / math.sqrt(3), 1 / math.sqrt(3))
-    ]
-    if intPt < 1 or intPt > 4:
-        raise ValueError("1~4")
-    xi, eta = gauss_pts[intPt - 1]
+遍历 ZHU_EDGE 中所有积分点的应力值：
+    获取对应单元和积分点编号
+    调用 ipCoord_cpe4 计算积分点坐标
+    写入一行数据：
+        单元编号, 积分点编号, -S22, ipX, ipY
 
-    N1 = (1 - xi) * (1 - eta) / 4.0
-    N2 = (1 + xi) * (1 - eta) / 4.0
-    N3 = (1 + xi) * (1 + eta) / 4.0
-    N4 = (1 - xi) * (1 + eta) / 4.0
-
-    ipX = N1 * X[0] + N2 * X[1] + N3 * X[2] + N4 * X[3]
-    ipY = N1 * Y[0] + N2 * Y[1] + N3 * Y[2] + N4 * Y[3]
-
-    return (ipX, ipY, 0.0)
-
-
-uField = frame.fieldOutputs['U']
-uCache = {v.nodeLabel: v.data for v in uField.values}
-
-csvName = 'S_ALL_withCoords_ZHU_EDGE.csv'
-with open(csvName, 'w') as f:
-    f.write('Element,IntPt,S22,X,Y\n')
-    for v in stressSubset.values:
-        elem = instance.elements[v.elementLabel - 1]
-        ipX, ipY, ipZ = ipCoord_cpe4(elem, frame, instance, uCache, v.integrationPoint)
-        f.write('{0},{1},{3},{6},{7}\n'.format(
-            v.elementLabel,
-            v.integrationPoint,
-            *v.data * (-1),
-            ipX - 80, ipY))
-
-odb.close()
+关闭 ODB 文件
