@@ -1,67 +1,37 @@
-# -*- coding: mbcs -*-
-#
-# Abaqus/CAE Release 2024 replay file
-# Internal Version: 2023_09_21-20.55.25 RELr426 190762
-# Run by gbl on Thu Nov 27 11:01:56 2025
-#
+# Abaqus 导入 INP 文件并创建作业
 
-# from driverUtils import executeOnCaeGraphicsStartup
-# executeOnCaeGraphicsStartup()
-#: Executing "onCaeGraphicsStartup()" in the site directory ...
-from abaqus import *
-from abaqusConstants import *
-session.Viewport(name='Viewport: 1', origin=(0.0, 0.0), width=322.670806884766,
-    height=138.133331298828)
-session.viewports['Viewport: 1'].makeCurrent()
-session.viewports['Viewport: 1'].maximize()
-from caeModules import *
-from driverUtils import executeOnCaeStartup
-executeOnCaeStartup()
-session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
-    referenceRepresentation=ON)
-Mdb()
-#: A new model database has been created.
-#: The model "Model-1" has been created.
-session.viewports['Viewport: 1'].setValues(displayedObject=None)
-mdb.models['Model-1'].PartFromInputFile(
-    inputFileName='D:/Work_Directory_new/model.inp')
-#: Warning: Undefined node and element ids have been removed from some node and element sets
-#: The part "PART-1" has been imported from the input file.
-#:
-#: Parts have been imported in "Model-1" from an input file.
-#: Please scroll up to check for error and warning messages.
-#:
-execfile('D:/Work_Directory_new/cohesive_element_creat.py', __main__.__dict__)
+初始化 Abaqus 环境
+创建新的模型数据库 Model-1
+设置并最大化视口
 
-p = mdb.models['Model-1'].parts['PART-1']
-session.viewports['Viewport: 1'].setValues(displayedObject=p)
-session.viewports['Viewport: 1'].partDisplay.setValues(sectionAssignments=ON,
-    engineeringFeatures=ON)
-session.viewports['Viewport: 1'].partDisplay.geometryOptions.setValues(
-    referenceRepresentation=OFF)
-p = mdb.models['Model-1'].parts['PART-1']
-e = p.elements
-if 'Set-cohesive' not in p.sets.keys():
-    raise ValueError('PART-1 cant find Set-cohesive!')
-cohesive_set = p.sets['Set-cohesive']
-cohesive_label = set(elem.label for elem in cohesive_set.elements)
-remain_elem = [elem for elem in e if elem.label not in cohesive_label]
-elemSeq = p.elements.sequenceFromLabels([elem.label for elem in remain_elem])
-p.Set(elements=elemSeq, name='Set-specimen')
-a = mdb.models['Model-1'].rootAssembly
-session.viewports['Viewport: 1'].setValues(displayedObject=a)
-session.viewports['Viewport: 1'].assemblyDisplay.setValues(
-    optimizationTasks=OFF, geometricRestrictions=OFF, stopConditions=OFF)
-a = mdb.models['Model-1'].rootAssembly
-a.DatumCsysByDefault(CARTESIAN)
-p = mdb.models['Model-1'].parts['PART-1']
-a.Instance(name='PART-1-1', part=p, dependent=ON)
-mdb.Job(name='gai', model='Model-1', description='', type=ANALYSIS,
-    atTime=None, waitMinutes=0, waitHours=0, queue=None, memory=90,
-    memoryUnits=PERCENTAGE, getMemoryFromAnalysis=True,
-    explicitPrecision=SINGLE, nodalOutputPrecision=SINGLE, echoPrint=OFF,
-    modelPrint=OFF, contactPrint=OFF, historyPrint=OFF, userSubroutine='',
-    scratch='', resultsFormat=ODB, numDomains=1, activateLoadBalancing=False,
-    numThreadsPerMpiProcess=1, multiprocessingMode=DEFAULT, numCpus=1,
-    numGPUs=0)
-mdb.jobs['gai'].writeInput(consistencyChecking=OFF)
+// 1. 从 INP 文件导入模型
+从文件导入 Part：
+    inputFileName = 'model.inp'
+    导入后部件名称为 'PART-1'
+
+// 2. 执行外部插件脚本
+运行外部 Python 脚本：
+    execfile('cohesive_element_creat.py')
+
+// 3. 设置显示与集合处理
+设置当前显示对象为 'PART-1' 部件
+开启截面属性和工程特征显示
+
+获取部件 'PART-1' 中的所有单元
+
+如果存在集合 'Set-cohesive'：
+    获取 cohesive 单元集合
+    创建剩余单元集合 'Set-specimen'（排除所有 cohesive 单元）
+否则：
+    报错：未找到 Set-cohesive
+
+// 4. 装配
+进入装配模块
+创建默认笛卡尔坐标系
+将部件 'PART-1' 实例化为 'PART-1-1'（依赖实例）
+
+// 5. 创建分析作业
+创建作业 ：
+
+// 6. 输出 INP 文件
+将作业 'gai' 写入输入文件
