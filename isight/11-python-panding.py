@@ -1,103 +1,37 @@
-from odbAccess import openOdb
-from abaqusConstants import *
-import math
-import sys
+# Abaqus ODB 后处理 - 峰值力提取与强度判断伪代码
 
-odb = openOdb(path=r'Job-1.odb', readOnly=True)
+打开 ODB 文件：Job-1.odb（只读模式）
 
-try:
-    with open('total_load.txt', 'r') as f:
-        load_str = f.read().strip()
-    load = float(load_str)
-except ValueError:
-    #print("Error: total_load.txt does not contain a valid float.")
-    sys.exit(1)
-except FileNotFoundError:
-    #print("Error: total_load.txt not found.")
-    sys.exit(1)
+// 1. 读取参考荷载
+从 total_load.txt 读取 total_load 值（若读取失败则退出）
 
-step_names = list(odb.steps.keys())
-if not step_names:
-    #print("Error: No steps found in ODB.")
-    sys.exit(1)
-step = odb.steps[step_names[-1]]
+// 2. 提取参考点反力
+获取最后一个分析步
+遍历该步的所有帧（frames）：
+    提取场输出 RF（Reaction Force）
+    获取节点集合 CANKAODIAN 的反力数据
+    取反力中的最小分量（主方向力）
+    转换为正值 positive_force = -RF
+    记录每个有效帧的正向力值和帧序号
 
-frames = step.frames
-positive_forces = []
-frame_indices = []
+// 3. 寻找峰值力（最大下降前的力值）
+计算相邻帧之间的力差值 diffs
+遍历 diffs，找出下降段（连续负差值）中下降量最大的段落
+记录该下降段起始位置对应的峰值力 peak_force 和峰值帧序号
 
-for frame_idx, frame in enumerate(frames):
-    if 'RF' not in frame.fieldOutputs:
-        continue
-    rf_field = frame.fieldOutputs['RF']
-    node_set = odb.rootAssembly.nodeSets['CANKAODIAN']
-    subset = rf_field.getSubset(region=node_set)
+// 4. 强度判断与结果计算
+从 bianliang.txt 读取参数 canshu
 
-    if not subset.values:
-        continue
+A = peak_force          // 实际峰值承载力
+B = total_load * 1.2    // 设计要求阈值
 
-    value = subset.values[0]
-    rf_components = value.data
-    main_rf = min(rf_components)
-    if main_rf >= 0:
-         continue
-        #print(f"Warning: RF data in frame {frame_idx} is not negative as expected.")
-    positive_force = -main_rf
+如果 A < B：
+    result = 20 - canshu     // 强度不够
+否则：
+    result = canshu          // 强度达标
 
-    positive_forces.append(positive_force)
-    frame_indices.append(frame_idx)
+// 5. 输出结果
+将 result 保留两位小数
+写入文件 result.txt
 
-if len(positive_forces) < 2:
-    #print("Error: Not enough frames with RF data.")
-    sys.exit(1)
-
-diffs = [positive_forces[i + 1] - positive_forces[i] for i in range(len(positive_forces) - 1)]
-
-max_drop = 0
-peak_index = -1
-i = 0
-n = len(diffs)
-
-while i < n:
-    if diffs[i] < 0:
-        current_drop = 0
-        start = i
-        while i < n and diffs[i] < 0:
-            current_drop -= diffs[i]
-            i += 1
-        # 检查是否是最大下降
-        if current_drop > max_drop:
-            max_drop = current_drop
-            peak_index = start
-    else:
-        i += 1
-
-if peak_index == -1:
-    #print("Error: No decreasing segments found.")
-    sys.exit(1)
-
-peak_frame_idx = frame_indices[peak_index]
-peak_force = positive_forces[peak_index]
-
-#print(f"The point before the big decrease is at frame: {peak_frame_idx}")
-#print(f"The force value at that point: {peak_force}")
-
-with open('bianliang.txt', encoding='utf-8') as f:
-    canshu = float(f.read().replace(' ', '').split('=')[1])
-A = peak_force
-B = load * 1.2
-if A < B:
-    result = 20-canshu
-    #print("矿柱强度不够")
-elif A > B:
-    result = canshu
-    ##print("矿柱强度达标")
-else:
-    result = canshu
-
-##print(f"Result: {result}")
-
-with open('result.txt', 'w') as f:
-    f.write(f"{result:.2f}")
-
-odb.close()
+关闭 ODB 文件
