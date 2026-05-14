@@ -1,2 +1,2 @@
 @echo off
-C:\Users\gbl\AppData\Local\Programs\Python\Python39\python.exe "D:\Work_Directory_new\6-rhino-stp_i_and_o.py" 2>&1
+C:\Users\用户名\AppData\Local\Programs\Python\Python39\python.exe "源文件夹\6-rhino-stp_i_and_o.py" 2>&1
